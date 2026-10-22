@@ -1,0 +1,14 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.16, pytest-8.4.2, pluggy-1.7.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /content
+plugins: anyio-4.15.1, langsmith-0.14.11, platformdirs-4.13.4, typeguard-4.6.0
+collecting ... collected 5 items
+
+tests/test_reconstruction.py::test_unpack_sensor_row PASSED              [ 20%]
+tests/test_reconstruction.py::test_unpack_sensor_row_missing_value PASSED [ 40%]
+tests/test_reconstruction.py::test_linear_reconstruction_known_case PASSED [ 60%]
+tests/test_reconstruction.py::test_pchip_reconstruction_linear_data PASSED [ 80%]
+tests/test_reconstruction.py::test_regression_metrics_perfect_prediction PASSED [100%]
+
+============================== 5 passed in 1.08s ===============================
