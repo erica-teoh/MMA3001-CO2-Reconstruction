@@ -51,8 +51,7 @@ MMA3001-CO2-Reconstruction/
 ├── README.md
 ├── LICENSE
 ├── requirements.txt
-├── notebooks/
-│   └── MMA3001_CO2_Reconstruction.ipynb
+├── MMA3001_CO2_Reconstruction.ipynb
 ├── src/
 │   └── reconstruction.py
 ├── tests/
