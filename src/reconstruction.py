@@ -26,6 +26,9 @@ def unpack_sensor_row(json_string):
     output = {}
     measurement_times = []
 
+    # Each JSON record may contain multiple environmental variables.
+    # Extract the first available reading for each variable.
+
     for item in data:
         variable_name = item["variable"]["name"]
         values = item.get("values", [])
@@ -35,6 +38,8 @@ def unpack_sensor_row(json_string):
 
             if "time" in values[0]:
                 measurement_times.append(values[0]["time"])
+                
+    # All variables in one sensor upload should correspond to the same measurement time.
 
     if measurement_times:
         output["measurement_time"] = measurement_times[0]
@@ -62,13 +67,21 @@ def linear_reconstruct(timestamps, values, start, end):
     numpy.ndarray
         Reconstructed values within the missing region.
     """
+
+    # Use timestamps as the index so interpolation accounts for the actual
+    # time spacing between measurements rather than assuming equal row spacing.
     series = pd.Series(
         np.asarray(values, dtype=float),
         index=pd.DatetimeIndex(timestamps)
     )
 
+    # Artificially remove the target region before reconstruction.
+
     masked = series.copy()
     masked.iloc[start:end + 1] = np.nan
+
+    # Restrict interpolation to internal gaps so values are not extrapolated
+    # beyond the available measured data.
 
     reconstructed = masked.interpolate(
         method="time",
@@ -98,6 +111,9 @@ def pchip_reconstruct(timestamps, values, start, end):
     numpy.ndarray
         PCHIP estimates within the missing region.
     """
+
+    # Convert timestamps to elapsed seconds because PCHIP requires numerical x-values.
+
     values = np.asarray(values, dtype=float)
 
     time_seconds = (
@@ -105,8 +121,13 @@ def pchip_reconstruct(timestamps, values, start, end):
         - pd.Series(timestamps).reset_index(drop=True).iloc[0]
     ).dt.total_seconds().to_numpy()
 
+    # Only measured values outside the artificial gap are supplied to the interpolator.
+
     known_mask = np.ones(len(values), dtype=bool)
     known_mask[start:end + 1] = False
+
+    # Disable extrapolation because the project evaluates reconstruction
+    # only for gaps bounded by valid measurements.
 
     interpolator = PchipInterpolator(
         time_seconds[known_mask],
@@ -135,6 +156,9 @@ def calculate_regression_metrics(true_values, predicted_values):
     dict
         Dictionary containing MAE, RMSE and R2.
     """
+
+    # R² is undefined when the ground-truth values have zero variance.
+
     true_values = np.asarray(true_values, dtype=float)
     predicted_values = np.asarray(predicted_values, dtype=float)
 
